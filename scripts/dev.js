@@ -1,4 +1,20 @@
 import concurrently from 'concurrently';
+import net from 'node:net';
+
+function isPortAvailable(port) {
+  return new Promise(resolve => {
+    const server = net.createServer();
+    server.once('error', () => resolve(false));
+    server.listen(port, '127.0.0.1', () => server.close(() => resolve(true)));
+  });
+}
+
+async function findPort(start) {
+  for (let port = start; port < start + 100; port += 1) {
+    if (await isPortAvailable(port)) return port;
+  }
+  throw new Error(`No available port found starting at ${start}`);
+}
 
 // Ensure Windows System32 is always at the front of PATH for child processes
 if (process.platform === 'win32') {
@@ -7,10 +23,18 @@ if (process.platform === 'win32') {
   process.env.Path = process.env.PATH;
 }
 
+const [apiPort, webPort] = await Promise.all([findPort(4000), findPort(5173)]);
+process.env.PORT = String(apiPort);
+process.env.CLIENT_URL = `http://localhost:${webPort}`;
+process.env.VITE_API_URL = `http://localhost:${apiPort}/api`;
+
+console.log(`SafeKeep API: http://localhost:${apiPort}`);
+console.log(`SafeKeep web: http://localhost:${webPort}`);
+
 const { result } = concurrently(
   [
     { command: 'npm --prefix backend run dev', name: 'api', prefixColor: 'blue' },
-    { command: 'npm --prefix frontend run dev', name: 'web', prefixColor: 'green' }
+    { command: `npm --prefix frontend run dev -- --port ${webPort} --strictPort`, name: 'web', prefixColor: 'green' }
   ],
   {
     killOthersOn: ['failure', 'success']

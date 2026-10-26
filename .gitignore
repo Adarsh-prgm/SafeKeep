@@ -6,3 +6,9 @@ backend/private-uploads/
 backend/generated/
 coverage/
 *.log
+*.db
+*.sqlite
+*.sqlite3
+private-uploads/
+client/
+server/

@@ -7,7 +7,8 @@
     "start": "node src/server.js",
     "test": "node --test",
     "db:generate": "prisma generate --schema ../database/prisma/schema.prisma",
-    "db:migrate": "prisma migrate dev --schema ../database/prisma/schema.prisma"
+    "db:migrate": "prisma migrate dev --schema ../database/prisma/schema.prisma",
+    "db:push": "prisma db push --schema ../database/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",

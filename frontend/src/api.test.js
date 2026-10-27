@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { api, setTokenGetter } from './api';
+import { api, docsApi, setTokenGetter } from './api';
 
 describe('API authorization interceptor', () => {
   it('adds the in-memory token to API calls', async () => {
@@ -17,4 +17,10 @@ describe('API authorization interceptor', () => {
     });
     expect(config.headers.Authorization).toBeUndefined();
   });
+
+  it('provides document preview and download methods', () => {
+    expect(typeof docsApi.preview).toBe('function');
+    expect(typeof docsApi.download).toBe('function');
+  });
 });
+

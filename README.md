@@ -22,7 +22,7 @@ The backend is explicitly built with Express (`backend/src/server.js` starts the
 
 ## Prerequisites and setup
 
-Use Node.js 20+ and PostgreSQL 14+. From this directory:
+Use Node.js 20+. From this directory:
 
 ```sh
 npm install
@@ -30,13 +30,13 @@ npm --prefix backend install
 npm --prefix frontend install
 ```
 
-Create `backend/.env` from `backend/.env.example`. Set `DATABASE_URL` to a database you control and generate a random `JWT_ACCESS_SECRET` with at least 32 characters. Adjust `CLIENT_URL`, `UPLOAD_DIR`, and `MAX_FILE_SIZE_MB` as needed. The API validates required configuration at startup.
+Create `backend/.env` from `backend/.env.example`. Set `DATABASE_URL` (defaults to `file:./dev.db` for SQLite) and generate a random `JWT_ACCESS_SECRET` with at least 32 characters. Adjust `CLIENT_URL`, `UPLOAD_DIR`, and `MAX_FILE_SIZE_MB` as needed. The API validates required configuration at startup.
 
-Generate Prisma and apply the initial development migration from the `database/` schema:
+Generate Prisma and sync the database from the `database/` schema:
 
 ```sh
 npm run db:generate
-npm run db:migrate
+npm run db:push
 ```
 
 Run both development servers:

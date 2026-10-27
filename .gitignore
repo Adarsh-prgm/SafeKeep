@@ -12,3 +12,5 @@ coverage/
 private-uploads/
 client/
 server/
+database/pgdata/
+pgdata/

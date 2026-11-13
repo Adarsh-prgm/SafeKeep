@@ -11,6 +11,7 @@
     "test": "npm --prefix backend test && npm --prefix frontend test",
     "db:generate": "npm --prefix backend run db:generate",
     "db:migrate": "npm --prefix backend run db:migrate",
+    "db:deploy": "npm --prefix backend run db:deploy",
     "db:push": "npm --prefix backend run db:push"
   },
   "devDependencies": {

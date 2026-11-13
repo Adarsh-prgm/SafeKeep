@@ -20,6 +20,17 @@ SafeKeep is a full-stack starter for a private personal document vault. It inclu
 
 The backend is explicitly built with Express (`backend/src/server.js` starts the Express app). The folders are separate at the project root so frontend code, server code, and database schema/migrations are easy to locate.
 
+## Deploying the full app to Render
+
+The frontend and API can run from one Render web service. In the service settings, clear **Root Directory** so it uses the repository root, then set:
+
+- **Build Command:** `npm install && npm --prefix backend install && npm --prefix frontend install && npm run db:generate && npm run build`
+- **Start Command:** `npm start`
+
+Set `DATABASE_URL` to your Render PostgreSQL connection string and `JWT_ACCESS_SECRET` to a random secret with at least 32 characters. Set `CLIENT_URL` to the service's public URL (for example, `https://your-service.onrender.com`). The production frontend uses `/api` on the same host, and the backend serves the built frontend at `/`. The start command applies pending PostgreSQL migrations before starting the API.
+
+Render's local filesystem is temporary unless you attach a persistent disk. Uploaded documents stored under `UPLOAD_DIR` can be lost on redeploy or restart, so use persistent storage before relying on the service for important files.
+
 ## Prerequisites and setup
 
 Use Node.js 20+ and PostgreSQL 14+. From this directory:
@@ -30,7 +41,7 @@ npm --prefix backend install
 npm --prefix frontend install
 ```
 
-Create `backend/.env` from `backend/.env.example`. Set `DATABASE_URL` to a PostgreSQL database you control and generate a random `JWT_ACCESS_SECRET` with at least 32 characters. Adjust `CLIENT_URL`, `UPLOAD_DIR`, and `MAX_FILE_SIZE_MB` as needed. The API validates required configuration at startup.
+Create `backend/.env` from `backend/.env.example`. Set `DATABASE_URL` to a PostgreSQL connection string and generate a random `JWT_ACCESS_SECRET` with at least 32 characters. Adjust `CLIENT_URL`, `UPLOAD_DIR`, and `MAX_FILE_SIZE_MB` as needed. The API validates required configuration at startup.
 
 Generate Prisma and apply the database migrations from the `database/` schema:
 

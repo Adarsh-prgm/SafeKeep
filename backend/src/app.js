@@ -1,4 +1,4 @@
-import express from 'express'; import helmet from 'helmet'; import cors from 'cors'; import rateLimit from 'express-rate-limit'; import multer from 'multer'; import path from 'node:path'; import crypto from 'node:crypto'; import fs from 'node:fs/promises'; import { PrismaClient } from '../generated/prisma/index.js';
+import express from 'express'; import helmet from 'helmet'; import cors from 'cors'; import rateLimit from 'express-rate-limit'; import multer from 'multer'; import path from 'node:path'; import { fileURLToPath } from 'node:url'; import crypto from 'node:crypto'; import fs from 'node:fs/promises'; import { PrismaClient } from '../generated/prisma/index.js';
 import { config } from './config.js'; import { hashPassword,checkPassword,issueToken,verifyToken } from './auth.js'; import { openStream,publish } from './notify.js';
 export const prisma=new PrismaClient(); export const app=express();
 const root=path.resolve(config.UPLOAD_DIR); await fs.mkdir(root,{recursive:true});
@@ -28,4 +28,15 @@ app.get('/api/notifications/unread-count',verifyToken,wrap(async(req,res)=>res.j
 app.patch('/api/notifications/:id/read',verifyToken,wrap(async(req,res)=>{const result=await prisma.notification.updateMany({where:{id:req.params.id,userId:req.user.id},data:{readAt:new Date()}});if(!result.count)return res.status(404).json({error:{code:'NOT_FOUND',message:'Notification not found.'}});res.json({ok:true});}));
 app.patch('/api/notifications/read-all',verifyToken,wrap(async(req,res)=>{await prisma.notification.updateMany({where:{userId:req.user.id,readAt:null},data:{readAt:new Date()}});res.json({ok:true});}));
 app.get('/api/notifications/stream',verifyToken,openStream);
+const frontendDist=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../frontend/dist');
+try {
+  await fs.access(path.join(frontendDist,'index.html'));
+  app.use(express.static(frontendDist));
+  app.get('*',(req,res,next)=>{
+    if(req.path.startsWith('/api/')) return next();
+    res.sendFile(path.join(frontendDist,'index.html'));
+  });
+} catch {
+  app.get('/',(_req,res)=>res.json({name:'SafeKeep API',health:'/api/health',message:'Build the frontend to serve the web app here.'}));
+}
 app.use((err,req,res,_next)=>{if(err instanceof multer.MulterError)return res.status(err.code==='LIMIT_FILE_SIZE'?413:400).json({error:{code:err.code,message:err.code==='LIMIT_FILE_SIZE'?'File is larger than the configured limit.':'Upload could not be processed.'}});console.error(err?.message);res.status(500).json({error:{code:'INTERNAL',message:'Something went wrong. Please try again.'}});});

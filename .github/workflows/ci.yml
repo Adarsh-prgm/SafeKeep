@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install root dependencies
+        run: npm ci
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+      - name: Generate Prisma client
+        run: npm run db:generate
+      - name: Run tests
+        run: npm test
+      - name: Build frontend
+        run: npm run build
+
+  deploy:
+    runs-on: ubuntu-24.04
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          curl --fail-with-body --show-error \
+            -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
